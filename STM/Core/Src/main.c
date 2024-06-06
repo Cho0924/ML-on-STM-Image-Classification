@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
 #include "app.h"
+#include "cifar10_nn.h"
 
 /* USER CODE END Includes */
 
@@ -134,7 +135,8 @@ int main(void)
   MX_USART1_Init();
   /* USER CODE BEGIN 2 */
   printf("Inference started");
-  application();
+  // application();
+  cifar10_nn();
   /* USER CODE END 2 */
 
   /* Infinite loop */
