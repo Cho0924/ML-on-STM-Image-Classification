@@ -20,12 +20,13 @@ extern "C" {
 }
 // End- User code
 
+// Declaration and initialization of global variables
 tflite::ErrorReporter* error_reporter = nullptr;
 const tflite::Model* nn = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* nn_input = nullptr;
 TfLiteTensor* nn_output = nullptr;
-constexpr size_t kTensorArenaSize = 60*1024;
+constexpr size_t kTensorArenaSize = 60*1024;  // a contiguous blocks of memory used for tensors
 uint8_t tensor_arena[kTensorArenaSize];
 
 
@@ -39,7 +40,7 @@ int application(void)
 	static tflite::MicroErrorReporter micro_error_reporter;
 	error_reporter = &micro_error_reporter;
 
-	//   Map the model into a usable data structure
+	// Map the model into a usable data structure
 	nn = tflite::GetModel(q8fmnist);
 	if (nn->version() != TFLITE_SCHEMA_VERSION)
 	{
@@ -56,11 +57,13 @@ int application(void)
 	interpreter = &static_interpreter;
 
 	// Allocate memory from the tensor_arena for the model's tensors.
-	tflite_status = interpreter->AllocateTensors();
+	tflite_status = interpreter->AllocateTensors();  // -> is the member access operator
 	if (tflite_status != kTfLiteOk){
 		error_reporter->Report("AllocateTensors() failed\n");
 	}
 
+	// Retrieve the address of the input/output tensor
+	// 0 is the index of the input/output tensor
 	TfLiteTensor* nn_input = interpreter->input(0);
 	TfLiteTensor* nn_output = interpreter->output(0);
 
@@ -71,6 +74,7 @@ int application(void)
 		StartTimer();
 		// -End User code
 		// receive an image
+		// nn_input->data.int8 is the member where input data is going to be stored after receiving them via USART
 		HAL_USART_Receive(&husart1, (uint8_t*)nn_input->data.int8, 28*28*1, HAL_MAX_DELAY);
 		HAL_Delay(1000);
 		// send the image back to show that MCU received it properly
@@ -91,6 +95,7 @@ int application(void)
 	}
 }
 
+// for log debugging
 void DebugLog(const char* s)
 {
 //	return;

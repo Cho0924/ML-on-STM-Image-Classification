@@ -10,8 +10,8 @@ import sys
 
 if __name__ == '__main__':
     # load test data
-    x_test = np.load('x_test_fmnist.npy')
-    y_test = np.load('y_test_fmnist.npy').squeeze()
+    x_test = np.load('test_image_cifar10.npy')
+    y_test = np.load('test_label_cifar10.npy').squeeze()
 
     ctk.set_appearance_mode("dark")
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     def update_gui(img, class_idx, pred):
         f = Figure()
         a = f.add_subplot(111)
-        a.imshow(img.astype(np.uint8))
+        a.imshow(img.astype(np.float32))
         f.savefig('test.png')
         image = Image.open('test.png')
         photo = ImageTk.PhotoImage(image)
@@ -65,14 +65,19 @@ if __name__ == '__main__':
         if num_pred < test_len:
             x = x_test[num_pred]
             y = y_test[num_pred]
+            print("input image size: {}\n".format(np.size(x)))
+            print("input image data type: {}\n".format(np.dtype(x[0][0][0])))
             num_pred += 1
             class_idx = y
             # send test data
-            ser.write(x.tobytes())
+            x_bytes = x.tobytes() # convert data into bytes sequence ex). \x37\xA0\xCC...
+            # length of x_bytes is 32*32*3*4, 4 if because each element in x is a float32
+            ser.write(x_bytes) 
             time.sleep(1)
             # read image data from MCU for checking
-            img = ser.read(28*28)
+            img = ser.read(32*32*3*4) # read bytes back. the number in the argument denotes how many bytes to read
             # interpret a buffer as a 1-dimensional uint8 array
+            # here, we convert bytes sequences into array. ex). \x01\x02 -> [1, 2]
             img = np.frombuffer(img, dtype=np.uint8) # for printing on command prompt
             print("Image sent to the MCUs: \n {}".format(img))
             time.sleep(1)
